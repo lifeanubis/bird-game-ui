@@ -57,7 +57,7 @@ export const Logo = ({ route = '/blob', ...props }) => {
 }
 
 export function Duck(props) {
-  const SOCKET_SERVER_URL = 'https://game-server-production-bbd8.up.railway.app/'
+  const SOCKET_SERVER_URL = 'http://localhost:4000'
   const playerObject = {
     player_score: '',
     player_name: '',
@@ -112,7 +112,7 @@ export function Duck(props) {
   let currentY = 0
   const smoothness = 0.05 // Adjust f
   useEffect(() => {
-    socket.current = io('https://game-server-production-bbd8.up.railway.app/')
+    socket.current = io('https://game-server-production-bbd8.up.railway.app')
     socket.current.on('message', (msg) => {
       if (socket.current.id === msg.player_id) {
         setShowInput(false)
@@ -147,46 +147,21 @@ export function Duck(props) {
     })
   }, [playerStats])
 
-  const sendMessage = () => {
-    // setPlayerStats([...playerStats, msg])
-    return socket.current.emit('message', playerStats)
-
-    // return  // Send message to the server
-  }
-
   useFrame((state, delta) => {
     circleRef.current.position.x = ((props.pos[0] + 0.012) * viewport.width) / 2
     circleRef.current.position.y = ((props.pos[1] - 0.01) * viewport.height) / 2
 
     if (colorState !== 'red') {
-      // scene.position.x = Math.sin(state.clock.getElapsedTime()) * 5
-      // scene.rotation.x = Math.cos(state.clock.getElapsedTime())
-      // scene.position.z = Math.sin(state.clock.getElapsedTime()) * 3
-      // scene.rotation.z = Math.sin(state.clock.getElapsedTime()) * 2
-      // scene.rotation.y = Math.sin(state.clock.getElapsedTime())
       scene.position.x = Math.sin(state.clock.getElapsedTime()) * random
       scene.position.y = Math.cos(state.clock.getElapsedTime()) * -(random - 1)
       scene.position.z = Math.tan(state.clock.getElapsedTime())
 
-      // scene.position.x = Math.random()
-      // scene.rotation.x = Math.cos(state.clock.getElapsedTime())
-      // scene.position.z = Math.sin(state.clock.getElapsedTime()) * 3
-      // scene.rotation.y = Math.sin(state.clock.getElapsedTime())
       scene.rotation.z = Math.sin(state.clock.getElapsedTime())
-
-      // setInterval(() => {
-      //   scene.rotation.z = Math.sin(state.clock.getElapsedTime())
-      // }, 5000)
     } else {
-      // if (colorState === 'red') {
-      // scene.position.set(0, -150, -10)
       scene.position.y = Math.tan(state.clock.getElapsedTime()) * -6
 
-      // rotation={[0, setColorState === 'red' ?  : 0, 0]}
-      // meshRef.current.rotation.y = -Math.PI * 0.5
       if (duckAudioRef.current) {
         setRandom(Math.random() * 4 - 1)
-        // console.log(random)
         duckAudioRef.current.play()
         duckAudioRef.current.setLoop(false)
       }
@@ -205,25 +180,17 @@ export function Duck(props) {
   const handleClick = () => {
     setColorState('red')
     setHitCount(hitCount + 1)
-    // setPlayerStats([...playerStats  ]  )
-
-    // sendMessage()
   }
 
   useEffect(() => {
     socket.current.emit('hit', {
       player_id: socket.current.id,
       player_score: hitCount,
-      // player_name: playerObject.player_name,
     })
   }, [hitCount])
 
   const handleName = (e) => {
     setPlayerStats([...playerStats, { player_name: e.target.value, player_id: socket.current.id, player_score: '0' }])
-    playerObject.player_name = e.target.value
-    playerObject.player_id = socket.current.id
-    playerObject.player_score = 0
-
     socket.current.emit('message', { player_name: e.target.value, player_id: socket.current.id, player_score: '0' })
   }
 
@@ -234,18 +201,20 @@ export function Duck(props) {
         onPointerOver={() => colorState !== 'red' && setColorState('orange')}
         onPointerOut={() => colorState !== 'red' && setColorState('')}
       >
-        <Html position={[0, 2, 0]} distanceFactor={10}>
-          <div className=' min-w-max bg-gray-900 p-5 text-xl uppercase text-green-950  '>
+        <Html position={[-4, 2, 0]}>
+          <div className='min-w-max  bg-gray-900/50  p-5 text-xl uppercase text-green-950  '>
             {playerStats?.length > 0 &&
               playerStats?.map((player, index) => {
                 return (
-                  <h2 className='text-white' key={index}>
+                  <h2
+                    className={`text-black ${socket.current.id === player?.player_id ? 'bg-blue-400' : 'bg-orange-400 '} p-2 `}
+                    key={index}
+                  >
                     {player?.player_name}- {player?.player_score}
                   </h2>
                 )
               })}
 
-            {/* <h2>{playerStats.player_name}</h2> */}
             {showInput && (
               <input
                 type='text'
@@ -254,22 +223,15 @@ export function Duck(props) {
                 onKeyDown={(e) => e.key === 'Enter' && handleName(e)}
               />
             )}
-            {/* <button onClick={() => alert('Button Clicked!')}>Click Me</button> */}
           </div>
         </Html>
         <primitive object={scene} {...props} />
-        <PositionalAudio
-          ref={duckAudioRef}
-          url='/quack.mp3' // Path to your audio file
-          distance={1}
-        />
+        <PositionalAudio ref={duckAudioRef} url='/quack.mp3' distance={1} />
       </mesh>
       <mesh ref={circleRef}>
-        {/* <circleGeometry args={[0.1, 32, 32]} /> */}
         <ringGeometry args={[0.07, 0.1, 32]} />
         <meshBasicMaterial color={colorState === '' ? 'green' : 'red'} />
       </mesh>
-      {/* <EnvironmentMap files='/icons/field.jpg' background /> */}
     </>
   )
 }

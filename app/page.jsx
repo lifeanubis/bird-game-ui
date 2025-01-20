@@ -50,7 +50,7 @@ export default function Page() {
         className='grid size-full grid-cols-1 items-center justify-items-center overflow-y-scroll '
       >
         <div className=' size-full '>
-          <View className=' grid size-full grid-cols-3 bg-[url("/icons/field.jpg")]  bg-cover '>
+          <View className=' grid size-full grid-cols-3 bg-sky-400 bg-[url("/icons/img_2.png")]  bg-contain '>
             <Suspense fallback={null}>
               <Duck scale={0.02} pos={mousePos} />
               <PositionalAudio
