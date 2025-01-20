@@ -2,7 +2,8 @@
   "name": "react-three-next",
   "version": "2.0.0",
   "authors": [
-    "Renaud ROHLINGER <https://twitter.com/onirenaud>"
+    "Renaud ROHLINGER <https://twitter.com/onirenaud>",
+    "shrey"
   ],
   "license": "MIT",
   "private": true,
@@ -20,10 +21,15 @@
     "@ducanh2912/next-pwa": "^10.0.0",
     "@react-three/drei": "^9.92.7",
     "@react-three/fiber": "^8.15.12",
+    "@react-three/rapier": "^1.5.0",
+    "express": "^4.21.2",
     "glsl-random": "^0.0.5",
     "next": "^14.0.4",
+    "peerjs": "^1.5.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "three": "^0.160.0",
     "three-stdlib": "^2.28.9",
     "tunnel-rat": "^0.1.2"
