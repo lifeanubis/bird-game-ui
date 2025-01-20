@@ -57,7 +57,7 @@ export const Logo = ({ route = '/blob', ...props }) => {
 }
 
 export function Duck(props) {
-  const SOCKET_SERVER_URL = 'http://localhost:4000'
+  const SOCKET_SERVER_URL = 'https://game-server-production-bbd8.up.railway.app/'
   const playerObject = {
     player_score: '',
     player_name: '',
@@ -111,9 +111,8 @@ export function Duck(props) {
   let currentX = 0
   let currentY = 0
   const smoothness = 0.05 // Adjust f
-
   useEffect(() => {
-    socket.current = io('http://localhost:4000')
+    socket.current = io('https://game-server-production-bbd8.up.railway.app/')
     socket.current.on('message', (msg) => {
       if (socket.current.id === msg.player_id) {
         setShowInput(false)
