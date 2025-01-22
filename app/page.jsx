@@ -47,7 +47,7 @@ export default function Page() {
         ref={meshRef}
         onMouseMove={handleMouseMove}
         onClick={() => gunAudio()}
-        className='grid size-full grid-cols-1 items-center justify-items-center overflow-y-scroll '
+        className='grid size-full grid-cols-1 items-center justify-items-center overflow-hidden '
       >
         <div className=' size-full '>
           <View className=' grid size-full grid-cols-3 bg-sky-400 bg-[url("/icons/img_2.png")]  bg-contain '>

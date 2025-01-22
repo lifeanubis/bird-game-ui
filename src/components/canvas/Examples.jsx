@@ -76,6 +76,8 @@ export function Duck(props) {
   const [hitCount, setHitCount] = useState(0)
   const [roomName, setRoomName] = useState('')
   const [roomCache, setRoomCache] = useState([])
+  const [roomChats, setRoomChats] = useState([])
+  const [chatText, setChatText] = useState('')
 
   const circleRef = useRef()
   const shake = useRef(0) // Track the shake intensity
@@ -114,9 +116,14 @@ export function Duck(props) {
   let currentY = 0
   const smoothness = 0.05 // Adjust f
   useEffect(() => {
-    socket.current = io('http://localhost:4000')
-
-    // socket.current = io('https://game-server-production-bbd8.up.railway.app')
+    // if (window) {
+    // socket.current = io('http://localhost:4000')
+    socket.current = io('https://game-server-production-bbd8.up.railway.app')
+    socket.current.on('chats', (msg) => {
+      // console.log(msg, 'hehehehe')
+      roomChats.length > 4 && document.getElementById(`bottom`).scrollIntoView()
+      setRoomChats((chats) => [...chats, msg])
+    })
     socket.current.on('add_player', (msg) => {
       setRoomCache((roomCache) => [...roomCache, msg])
       if (msg.room_name === roomName) {
@@ -134,6 +141,7 @@ export function Duck(props) {
     return () => {
       socket.current.disconnect()
     }
+    // }
   }, [roomName])
 
   useEffect(() => {
@@ -221,6 +229,16 @@ export function Duck(props) {
     setRoomName(e.target.value.toString().toUpperCase())
   }
 
+  const handleChats = (e) => {
+    socket.current.emit('chats', {
+      player_chat: chatText,
+      player_id: socket.current.id,
+      room_name: roomName,
+    })
+    roomChats.length > 4 && document.getElementById(`bottom`).scrollIntoView()
+    setChatText('')
+  }
+
   return (
     <>
       <mesh
@@ -229,7 +247,7 @@ export function Duck(props) {
         onPointerOut={() => colorState !== 'red' && setColorState('')}
       >
         <Html position={[-4, 2, 0]}>
-          <div className='min-w-max  bg-gray-900/50  p-5 text-xl uppercase text-green-950  '>
+          <div className='max-w-max  bg-gray-900/50  p-5 text-xl uppercase text-green-950  '>
             <div className='grid gap-y-10'>
               <input
                 type='text'
@@ -260,6 +278,39 @@ export function Duck(props) {
                   </h2>
                 )
               })}
+          </div>
+          <div className='max-h-[70vh] min-h-[70vh] overflow-y-scroll bg-slate-950/50 overflow-hidden '>
+            <div className=' relative  grid gap-y-5 p-4   right-0 text-center  uppercase'>
+              {roomChats?.map((item, index) => {
+                return (
+                  <p
+                    key={index}
+                    id={`ele${index}`}
+                    className={`text-white text-center justify-between  font-semibold p-2 ${socket.current.id === item?.player_id ? 'bg-blue-400/60' : 'bg-lime-400/60'}`}
+                  >
+                    <p className='text-xs bg-black text-white  rounded-full   w-full p-2 text-nowrap text-ellipsis '>
+                      {playerStats.find((player) => player.player_id === item.player_id)?.player_name}
+                    </p>
+                    {item.player_chat}
+                  </p>
+                )
+              })}
+              <p id={`bottom`} className='h-32 opacity-0'>
+                bottom
+              </p>
+            </div>
+            <div>
+              <input
+                className='bg-teal-500/80 text-white placeholder:text-black p-4 w-full  absolute bottom-0  text-center  uppercase'
+                type='text'
+                title='chats'
+                placeholder='player chat'
+                onKeyDown={(e) => e.key === 'Enter' && handleChats(e)}
+                defaultValue={chatText}
+                value={chatText}
+                onChange={(e) => setChatText(e.target.value)}
+              />
+            </div>
           </div>
         </Html>
         <primitive object={scene} {...props} />

@@ -18,7 +18,25 @@
     background-color: black;
     color: thistle;
     cursor: crosshair;
-    /* cursor: text; */
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #3e3a3a;
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #e9d2d2;
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #bba9a9;
   }
 
   .bird {
