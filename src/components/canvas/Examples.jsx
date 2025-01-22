@@ -74,6 +74,8 @@ export function Duck(props) {
   const [playerStats, setPlayerStats] = useState([])
   const [showInput, setShowInput] = useState(true)
   const [hitCount, setHitCount] = useState(0)
+  const [roomName, setRoomName] = useState('')
+  const [roomCache, setRoomCache] = useState([])
 
   const circleRef = useRef()
   const shake = useRef(0) // Track the shake intensity
@@ -112,37 +114,44 @@ export function Duck(props) {
   let currentY = 0
   const smoothness = 0.05 // Adjust f
   useEffect(() => {
-    socket.current = io('https://game-server-production-bbd8.up.railway.app')
-    socket.current.on('message', (msg) => {
-      if (socket.current.id === msg.player_id) {
-        setShowInput(false)
+    socket.current = io('http://localhost:4000')
+
+    // socket.current = io('https://game-server-production-bbd8.up.railway.app')
+    socket.current.on('add_player', (msg) => {
+      setRoomCache((roomCache) => [...roomCache, msg])
+      if (msg.room_name === roomName) {
+        if (socket.current.id === msg.player_id) {
+          setShowInput(false)
+        } else {
+          setPlayerStats((prevMessages) => [...prevMessages, msg])
+        }
+      }
+      if (msg.room_name !== roomName) {
         return
-      } else {
-        setPlayerStats((prevMessages) => [...prevMessages, msg])
       }
     })
 
     return () => {
       socket.current.disconnect()
     }
-  }, [])
+  }, [roomName])
+
+  useEffect(() => {
+    const uniqueArray = [...new Set(roomCache.filter((item) => item.room_name === roomName))]
+    setPlayerStats(uniqueArray)
+  }, [roomCache, roomName])
 
   useEffect(() => {
     socket.current.on('hit', (msg) => {
       if (msg?.player_id) {
-        let updatedPlayers = playerStats?.map(
-          (item) =>
-            item?.player_id === msg?.player_id
-              ? { ...item, player_score: msg?.player_score } // Update only the score
-              : item, // Keep the rest unchanged
+        let updatedPlayers = playerStats?.map((item) =>
+          item?.player_id === msg?.player_id ? { ...item, player_score: msg?.player_score } : item,
         )
         setPlayerStats(updatedPlayers)
         setColorState('red')
         setTimeout(() => {
           setColorState('')
         }, 5000)
-        // console.log(msg, '-------p')
-        // console.log(playerStats, 'playerStats-------p')
       }
     })
   }, [playerStats])
@@ -190,8 +199,26 @@ export function Duck(props) {
   }, [hitCount])
 
   const handleName = (e) => {
-    setPlayerStats([...playerStats, { player_name: e.target.value, player_id: socket.current.id, player_score: '0' }])
-    socket.current.emit('message', { player_name: e.target.value, player_id: socket.current.id, player_score: '0' })
+    let random_player = `RANDOM_PLAYER ${Math.floor(Math.random() * 100)}`
+    setPlayerStats([
+      ...playerStats,
+      {
+        player_name: e.target.value || random_player,
+        player_id: socket.current.id,
+        player_score: '0',
+        room_name: roomName || 'GLOBAL_ROOM',
+      },
+    ])
+    socket.current.emit('add_player', {
+      player_name: e.target.value || random_player,
+      player_id: socket.current.id,
+      player_score: '0',
+      room_name: roomName || 'GLOBAL_ROOM',
+    })
+  }
+
+  const handleRoom = (e) => {
+    setRoomName(e.target.value.toString().toUpperCase())
   }
 
   return (
@@ -203,7 +230,26 @@ export function Duck(props) {
       >
         <Html position={[-4, 2, 0]}>
           <div className='min-w-max  bg-gray-900/50  p-5 text-xl uppercase text-green-950  '>
-            {playerStats?.length > 0 &&
+            <div className='grid gap-y-10'>
+              <input
+                type='text'
+                className='text-center uppercase'
+                title='enter player name'
+                placeholder='enter room'
+                onKeyDown={(e) => e.key === 'Enter' && handleRoom(e)}
+              />
+
+              {roomName && showInput && (
+                <input
+                  className='text-center uppercase'
+                  type='text'
+                  title='enter player name'
+                  placeholder='enter player name'
+                  onKeyDown={(e) => e.key === 'Enter' && handleName(e)}
+                />
+              )}
+            </div>
+            {playerStats &&
               playerStats?.map((player, index) => {
                 return (
                   <h2
@@ -214,15 +260,6 @@ export function Duck(props) {
                   </h2>
                 )
               })}
-
-            {showInput && (
-              <input
-                type='text'
-                title='enter player name'
-                placeholder='press enter after typing'
-                onKeyDown={(e) => e.key === 'Enter' && handleName(e)}
-              />
-            )}
           </div>
         </Html>
         <primitive object={scene} {...props} />
